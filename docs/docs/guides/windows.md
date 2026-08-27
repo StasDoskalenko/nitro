@@ -52,10 +52,30 @@ module consumes it, and a no-op on iOS / Android / any other target.
 
 Run [`rnw-dependencies.ps1`](https://microsoft.github.io/react-native-windows/docs/rnw-dependencies) from an elevated PowerShell prompt if anything is missing.
 
+## Opting in
+
+Declare `windows: 'c++'` on the HybridObject spec (Windows only has a C++ implementation):
+
+```ts
+interface MyObject extends HybridObject<{ ios: 'c++'; android: 'c++'; windows: 'c++' }> {
+  // ...
+}
+```
+
+With that, `nitrogen` generates (into `nitrogen/generated/windows/`):
+
+| File | |
+| --- | --- |
+| `<Name>+autolinking.props` / `.targets` | import these from your `.vcxproj` — they pull in `ConsumeNitroModules.{props,targets}`, add every generated shared C++ spec + the autolinking entry point as `<ClCompile>`, and set the include dirs. |
+| `<Name>Autolinking.hpp` / `.cpp` | `registerHybridObjects()` — call it from your package provider. |
+
+`<Name>` comes from `nitro.json` `windows.windowsProjectName` (default: `android.androidCxxLibName`).
+
 ## Adding a Windows project to your Nitro module
 
 Your module needs a React Native Windows C++ module project (`windows/<Name>/<Name>.vcxproj`
-plus a `.sln`). Start from a `react-native-windows` "cpp-lib" template, then wire in Nitro:
+plus a `.sln`). Start from a `react-native-windows` "cpp-lib" template, then import the two
+generated files:
 
 ```xml
 <PropertyGroup Label="ReactNativeWindowsProps">
@@ -63,30 +83,46 @@ plus a `.sln`). Start from a `react-native-windows` "cpp-lib" template, then wir
 </PropertyGroup>
 
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-<Import Project="$(NitroModulesDir)windows\ConsumeNitroModules.props" />
+<Import Project="..\..\nitrogen\generated\windows\MyModule+autolinking.props" />
 
 <ItemGroup>
-  <!-- Your Nitrogen output + HybridObject implementations -->
-  <ClCompile Include="..\..\nitrogen\generated\shared\c++\HybridMyObjectSpec.cpp" />
+  <!-- Only your own HybridObject implementations - the generated specs come from the .props -->
   <ClCompile Include="..\..\cpp\HybridMyObject.cpp" />
 </ItemGroup>
+<ItemDefinitionGroup>
+  <ClCompile>
+    <!-- so the generated registration can #include "HybridMyObject.hpp" -->
+    <AdditionalIncludeDirectories>..\..\cpp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+  </ClCompile>
+</ItemDefinitionGroup>
 
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-<Import Project="$(NitroModulesDir)windows\ConsumeNitroModules.targets" />
+<Import Project="..\..\nitrogen\generated\windows\MyModule+autolinking.targets" />
 ```
 
-- `ConsumeNitroModules.props` sets `NITRO_USING_SHARED_LIBRARY`, C++20, the `cpp/` include
-  paths, and the MSVC standard-library compat forced-include.
-- `ConsumeNitroModules.targets` adds a `ProjectReference` to `NitroModules.vcxproj` (so it
-  builds first and `NitroModules.lib` is linked) and regenerates the
-  `<NitroModules/*.hpp>` shims before each compile.
+`ConsumeNitroModules.props` (imported transitively) sets `NITRO_USING_SHARED_LIBRARY`, C++20,
+the `cpp/` include paths, and the MSVC standard-library compat forced-include.
+`ConsumeNitroModules.targets` adds a `ProjectReference` to `NitroModules.vcxproj` (so it
+builds first and `NitroModules.lib` is linked) and regenerates the `<NitroModules/*.hpp>`
+shims before each compile.
 
 Do **not** add Nitro's `cpp/*.cpp` to your project — they live in `NitroModules.dll`.
 
 ### Registering your HybridObjects
 
-`NitroModules.dll` only calls `margelo::nitro::install()`. Register your HybridObjects from
-your module's own `IReactPackageProvider` (or a `REACT_INIT` method):
+Call the generated `registerHybridObjects()` from your module's own `IReactPackageProvider`:
+
+```cpp
+#include "MyModuleAutolinking.hpp"  // <-- from nitrogen/generated/windows
+
+void ReactPackageProvider::CreatePackage(IReactPackageBuilder const &packageBuilder) noexcept {
+  margelo::nitro::mymodule::registerHybridObjects();
+  AddAttributedModules(packageBuilder, true);
+}
+```
+
+<details>
+<summary>Manual registration (without the generated file)</summary>
 
 ```cpp
 #include <NitroModules/HybridObjectRegistry.hpp>
@@ -94,6 +130,7 @@ your module's own `IReactPackageProvider` (or a `REACT_INIT` method):
 margelo::nitro::HybridObjectRegistry::registerHybridObjectConstructor(
     "MyObject", []() { return std::make_shared<HybridMyObject>(); });
 ```
+</details>
 
 ### App setup
 
@@ -132,6 +169,6 @@ app in Release and runs UI flows against it.
 | | Status |
 | --- | --- |
 | Hybrid Views | Not supported — `cpp/views/` is not compiled. |
-| Nitrogen autolinking | No Windows output yet — import `ConsumeNitroModules.*` and register HybridObjects by hand. |
+| Bridged languages | Windows is C++ only — no Swift/Kotlin equivalent. |
 | Toolset | All native modules in the app must use the same MSVC toolset. |
 | Architectures | `x64` and `ARM64`. |
