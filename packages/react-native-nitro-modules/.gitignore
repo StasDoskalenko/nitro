@@ -89,3 +89,6 @@ windows/**/Win32/
 windows/**/Generated Files/
 windows/**/*.user
 windows/packages/
+
+# NuGet restore lock (regenerated per consuming app)
+windows/**/packages.lock.json
