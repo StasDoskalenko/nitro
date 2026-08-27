@@ -1,0 +1,61 @@
+name: Build Windows
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/build-windows.yml'
+      - 'packages/react-native-nitro-modules/cpp/**'
+      - 'packages/react-native-nitro-modules/windows/**'
+      - 'packages/nitrogen/src/autolinking/windows/**'
+      - 'packages/nitrogen/src/autolinking/createWindowsAutolinking.ts'
+      - '**/bun.lock'
+  pull_request:
+    paths:
+      - '.github/workflows/build-windows.yml'
+      - 'packages/react-native-nitro-modules/cpp/**'
+      - 'packages/react-native-nitro-modules/windows/**'
+      - 'packages/nitrogen/src/autolinking/windows/**'
+      - 'packages/nitrogen/src/autolinking/createWindowsAutolinking.ts'
+      - '**/bun.lock'
+
+jobs:
+  build:
+    name: Build NitroModules.dll (MSVC)
+    # windows-2025 ships VS 2022/2026 (MSVC v143/v145), the Windows 10.0.26100 SDK and NuGet.
+    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies (bun)
+        run: bun install --frozen-lockfile
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Resolve react-native-windows dir
+        id: rnw
+        shell: pwsh
+        run: |
+          $pkg = (Get-ChildItem -Recurse -Filter package.json -Path node_modules/react-native-windows -Depth 1 | Select-Object -First 1)
+          $dir = (Resolve-Path (Split-Path $pkg.FullName)).Path + '\'
+          "dir=$dir" >> $env:GITHUB_OUTPUT
+
+      - name: Build NitroModules.sln (${{ matrix.configuration }}|x64)
+        shell: pwsh
+        run: |
+          msbuild packages/react-native-nitro-modules/windows/NitroModules.sln `
+            /t:restore,build `
+            /p:Configuration=${{ matrix.configuration }} `
+            /p:Platform=x64 `
+            /p:ReactNativeWindowsDir="${{ steps.rnw.outputs.dir }}" `
+            /m `
+            /clp:Summary `
+            /nologo
