@@ -36,7 +36,7 @@ struct AnyValue : VariantType {
  * 2. Arrays of primitives
  * 3. Objects of primitives
  */
-class AnyMap final {
+class NITRO_EXPORT AnyMap final {
 private:
   AnyMap() = default;
   explicit AnyMap(size_t size) {

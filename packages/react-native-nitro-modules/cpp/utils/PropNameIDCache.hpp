@@ -8,6 +8,7 @@
 #pragma once
 
 #include "BorrowingReference.hpp"
+#include "NitroDefines.hpp"
 #include <jsi/jsi.h>
 #include <unordered_map>
 
@@ -24,7 +25,7 @@ using namespace facebook;
  * And is more efficient than the string equivalent overloads of those
  * functions due to caching.
  */
-class PropNameIDCache final {
+class NITRO_EXPORT PropNameIDCache final {
 public:
   PropNameIDCache() = delete;
   ~PropNameIDCache() = delete;

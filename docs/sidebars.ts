@@ -44,6 +44,7 @@ const sidebars: SidebarsConfig = {
         'guides/sync-vs-async',
         'guides/view-components',
         'guides/troubleshooting',
+        'guides/windows',
         'guides/running-example-app',
       ]
     },

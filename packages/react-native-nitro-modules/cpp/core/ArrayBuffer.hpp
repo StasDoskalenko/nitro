@@ -34,7 +34,7 @@ using DeleteFn = std::function<void()>;
  * - Borrowed = the `ArrayBuffer`'s `data()` might be deleted at any point from an external source (e.g. the JS garbage collector).
  *   When this `ArrayBuffer` gets deleted, the memory will not be freed explicitly, as someone else owns it.
  */
-class ArrayBuffer : public jsi::MutableBuffer {
+class NITRO_EXPORT ArrayBuffer : public jsi::MutableBuffer {
 public:
   ArrayBuffer() = default;
   ArrayBuffer(const ArrayBuffer&) = delete;
@@ -100,7 +100,7 @@ public:
  *
  * It is safe to access `data()` and `size()` from any Thread, but there are no synchronization/mutexes implemented by default.
  */
-class NativeArrayBuffer final : public ArrayBuffer {
+class NITRO_EXPORT NativeArrayBuffer final : public ArrayBuffer {
 public:
   /**
    * Create a new **owning** `ArrayBuffer`.
@@ -136,7 +136,7 @@ private:
  *
  * If the JS ArrayBuffer (or its JS Runtime) have already been deleted, `data()` returns `nullptr`.
  */
-class JSArrayBuffer final : public ArrayBuffer {
+class NITRO_EXPORT JSArrayBuffer final : public ArrayBuffer {
 public:
   explicit JSArrayBuffer(jsi::Runtime& runtime, BorrowingReference<jsi::ArrayBuffer> jsReference);
   ~JSArrayBuffer();

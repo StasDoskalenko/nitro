@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Import this from a Nitro module's .vcxproj (after Microsoft.Cpp.props) to consume the
+  shared `NitroModules.dll`:
+
+    <Import Project="$(NitroModulesDir)windows\ConsumeNitroModules.props" />
+    ...
+    <Import Project="$(NitroModulesDir)windows\ConsumeNitroModules.targets" />
+
+  It sets `NITRO_USING_SHARED_LIBRARY` (so `NITRO_EXPORT` becomes `__declspec(dllimport)`),
+  the include paths for `../../cpp` + the generated `<NitroModules/*.hpp>` shims, C++20, and
+  the MSVC standard-library compat forced-include.
+
+  Your module still needs to *link* `NitroModules.lib` and be built after it - do that with a
+  ProjectReference (see ConsumeNitroModules.targets).
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="NitroModules">
+    <NitroModulesDir Condition="'$(NitroModulesDir)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(SolutionDir), 'node_modules\react-native-nitro-modules\package.json'))\node_modules\react-native-nitro-modules\</NitroModulesDir>
+    <NitroModulesCppDir>$(NitroModulesDir)cpp\</NitroModulesCppDir>
+    <NitroModulesWindowsDir>$(NitroModulesDir)windows\</NitroModulesWindowsDir>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj /Zc:__cplusplus</AdditionalOptions>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles);NitroMsvcStdCompat.h</ForcedIncludeFiles>
+      <PreprocessorDefinitions>NOMINMAX;WIN32_LEAN_AND_MEAN;NITRO_USING_SHARED_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings);4100;4244;4251;4267;4275;4453;28204</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>
+        $(NitroModulesWindowsDir)NitroModules;
+        $(NitroModulesWindowsDir)include;
+        $(NitroModulesCppDir)core;
+        $(NitroModulesCppDir)entrypoint;
+        $(NitroModulesCppDir)jsi;
+        $(NitroModulesCppDir)platform;
+        $(NitroModulesCppDir)prototype;
+        $(NitroModulesCppDir)registry;
+        $(NitroModulesCppDir)templates;
+        $(NitroModulesCppDir)threading;
+        $(NitroModulesCppDir)utils;
+        $(NitroModulesCppDir)views;
+        %(AdditionalIncludeDirectories)
+      </AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>

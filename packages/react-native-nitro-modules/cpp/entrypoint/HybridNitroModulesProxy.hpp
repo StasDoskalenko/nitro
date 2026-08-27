@@ -9,6 +9,7 @@
 
 #include "BoxedHybridObject.hpp"
 #include "HybridObject.hpp"
+#include "NitroDefines.hpp"
 #include <memory>
 #include <string>
 
@@ -22,7 +23,7 @@ namespace margelo::nitro {
  * 3. Pass the object from `.toObject()` it to JS (either install in global, or return somehow)
  * 4. From JS, you can access methods on this HybridObject to create all other HybridObjects.
  */
-class HybridNitroModulesProxy final : public HybridObject {
+class NITRO_EXPORT HybridNitroModulesProxy final : public HybridObject {
 public:
   explicit HybridNitroModulesProxy() : HybridObject(TAG) {}
 

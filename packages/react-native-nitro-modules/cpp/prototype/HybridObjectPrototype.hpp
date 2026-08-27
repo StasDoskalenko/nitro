@@ -29,7 +29,7 @@ using namespace facebook;
  * When assigned to a jsi::Object, all methods of this prototype can be called on that jsi::Object,
  * as long as it has a valid NativeState (`this`).
  */
-class HybridObjectPrototype {
+class NITRO_EXPORT HybridObjectPrototype {
 public:
   HybridObjectPrototype() {}
 

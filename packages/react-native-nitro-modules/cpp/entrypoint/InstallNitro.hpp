@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Dispatcher.hpp"
+#include "NitroDefines.hpp"
 #include <jsi/jsi.h>
 #include <memory>
 
@@ -26,7 +27,7 @@ namespace margelo::nitro {
  * React's `CallInvoker`), but in a thread-safe Runtime it might just be
  * an implementation that runs the method directly.
  */
-void install(jsi::Runtime& runtime, std::shared_ptr<Dispatcher> dispatcher);
+NITRO_EXPORT void install(jsi::Runtime& runtime, std::shared_ptr<Dispatcher> dispatcher);
 
 /**
  * Installs Nitro into the given JS `runtime`.
@@ -36,6 +37,6 @@ void install(jsi::Runtime& runtime, std::shared_ptr<Dispatcher> dispatcher);
  * No `Dispatcher` will be installed, meaning Nitro can only use synchronous
  * methods.
  */
-void install(jsi::Runtime& runtime);
+NITRO_EXPORT void install(jsi::Runtime& runtime);
 
 } // namespace margelo::nitro

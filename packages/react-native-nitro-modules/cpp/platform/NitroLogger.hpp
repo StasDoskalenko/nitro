@@ -16,7 +16,7 @@ namespace margelo::nitro {
 
 enum class LogLevel { Debug, Info, Warning, Error };
 
-class Logger final {
+class NITRO_EXPORT Logger final {
 private:
   Logger() = delete;
 
