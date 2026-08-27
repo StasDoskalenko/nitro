@@ -1,7 +1,7 @@
 import { NitroConfig } from '../../config/NitroConfig.js'
 import { isCppFile, isNotDuplicate } from '../../syntax/helpers.js'
 import type { SourceFile } from '../../syntax/SourceFile.js'
-import { indent, toLowerCamelCase } from '../../utils.js'
+import { toLowerCamelCase } from '../../utils.js'
 
 export interface MSBuildFile extends Omit<SourceFile, 'language'> {
   language: 'xml'
@@ -29,6 +29,8 @@ function toMSBuildInclude(prefix: string, file: SourceFile): string {
   return [prefix, ...file.subdirectory, file.name].join('\\')
 }
 
+const nitroModulesDirProperty = `<NitroModulesDir Condition="'$(NitroModulesDir)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(SolutionDir), 'node_modules\\react-native-nitro-modules\\package.json'))\\node_modules\\react-native-nitro-modules\\</NitroModulesDir>`
+
 /**
  * Generates `<Name>+autolinking.props` and `<Name>+autolinking.targets` for Windows.
  *
@@ -41,18 +43,22 @@ function toMSBuildInclude(prefix: string, file: SourceFile): string {
  *  - add every Nitrogen-generated shared C++ spec + the autolinking entry point as
  *    `<ClCompile>` items,
  *  - add the generated include directories.
+ *
+ * Hybrid View sources (`shared/c++/views/`) are skipped - Hybrid Views are not
+ * supported on Windows.
  */
 export function createMSBuildExtension(files: SourceFile[]): MSBuildFile[] {
   const name = NitroConfig.current.getWindowsProjectName()
   const autolinkingClassName = `${name}Autolinking`
   const buildingWithDefinition = getBuildingWithGeneratedMSBuildDefinition()
 
-  const nitroModulesDirProp = `<NitroModulesDir Condition="'$(NitroModulesDir)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(SolutionDir), 'node_modules\\react-native-nitro-modules\\package.json'))\\node_modules\\react-native-nitro-modules\\</NitroModulesDir>`
-
-  const sharedCppFiles = files
+  const sharedCppItems = files
     .filter((f) => f.platform === 'shared' && isCppFile(f))
+    .filter((f) => !f.subdirectory.includes('views'))
     .map((f) => toMSBuildInclude('$(NitrogenDir)..\\shared\\c++', f))
     .filter(isNotDuplicate)
+    .map((p) => `    <ClCompile Include="${p}" />`)
+    .join('\n')
 
   const propsCode = `<?xml version="1.0" encoding="utf-8"?>
 <!--
@@ -65,7 +71,7 @@ ${msbuildBanner(`${name}+autolinking.props`)}
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Nitrogen">
     <NitrogenDir>$(MSBuildThisFileDirectory)</NitrogenDir>
-    ${nitroModulesDirProp}
+    ${nitroModulesDirProperty}
   </PropertyGroup>
 
   <Import Project="$(NitroModulesDir)windows\\ConsumeNitroModules.props" />
@@ -78,7 +84,7 @@ ${msbuildBanner(`${name}+autolinking.props`)}
   </ItemDefinitionGroup>
 
   <ItemGroup Label="Nitrogen generated (shared C++)">
-${indent(sharedCppFiles.map((p) => `<ClCompile Include="${p}" />`).join('\n'), '    ')}
+${sharedCppItems}
     <ClCompile Include="$(NitrogenDir)${autolinkingClassName}.cpp" />
     <ClInclude Include="$(NitrogenDir)${autolinkingClassName}.hpp" />
   </ItemGroup>
@@ -92,7 +98,7 @@ ${msbuildBanner(`${name}+autolinking.targets`)}
 -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Nitrogen">
-    ${nitroModulesDirProp}
+    ${nitroModulesDirProperty}
   </PropertyGroup>
 
   <Import Project="$(NitroModulesDir)windows\\ConsumeNitroModules.targets" />
