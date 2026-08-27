@@ -95,14 +95,55 @@ function collectHeaders(cppRoot) {
 
 function writeShims(outDir, names) {
   fs.mkdirSync(outDir, { recursive: true })
-  for (const name of fs.readdirSync(outDir)) {
-    if (name.endsWith('.hpp')) {
-      fs.unlinkSync(path.join(outDir, name))
+  const wanted = new Set(names)
+
+  // Prune stale shims. Tolerate ENOENT: several project builds may run this
+  // concurrently (NitroModules.vcxproj + each consuming module) against the same dir.
+  let existing = []
+  try {
+    existing = fs.readdirSync(outDir)
+  } catch {
+    existing = []
+  }
+  for (const name of existing) {
+    if (name.endsWith('.hpp') && !wanted.has(name)) {
+      try {
+        fs.rmSync(path.join(outDir, name), { force: true })
+      } catch {
+        /* another build already removed it */
+      }
     }
   }
+
   for (const name of names) {
     const stem = name.slice(0, -'.hpp'.length)
-    fs.writeFileSync(path.join(outDir, name), `#pragma once\n#include <${stem}.hpp>\n`, 'utf8')
+    const target = path.join(outDir, name)
+    const contents = `#pragma once\n#include <${stem}.hpp>\n`
+    // Skip the write if it is already correct - avoids churning mtimes (and racing
+    // writes) when multiple project builds regenerate the same shim set.
+    let current = null
+    try {
+      current = fs.readFileSync(target, 'utf8')
+    } catch {
+      current = null
+    }
+    if (current !== contents) {
+      try {
+        fs.writeFileSync(target, contents, 'utf8')
+      } catch (error) {
+        // A concurrent build may have written the same content first; only rethrow
+        // if the file still is not what we expect.
+        let after = null
+        try {
+          after = fs.readFileSync(target, 'utf8')
+        } catch {
+          after = null
+        }
+        if (after !== contents) {
+          throw error
+        }
+      }
+    }
   }
 }
 

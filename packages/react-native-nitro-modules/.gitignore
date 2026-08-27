@@ -79,3 +79,16 @@ lib/
 
 # generated <NitroModules/*.hpp> include shims for Windows/MSVC
 windows/include/NitroModules/*.hpp
+
+# MSBuild / Visual Studio outputs for windows/NitroModules
+windows/**/obj/
+windows/**/bin/
+windows/**/x64/
+windows/**/ARM64/
+windows/**/Win32/
+windows/**/Generated Files/
+windows/**/*.user
+windows/packages/
+
+# NuGet restore lock (regenerated per consuming app)
+windows/**/packages.lock.json
