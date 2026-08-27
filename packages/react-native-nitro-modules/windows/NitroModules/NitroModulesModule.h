@@ -13,11 +13,10 @@ namespace winrt::NitroModules
 // Implements the `NitroModules` TurboModule that `react-native-nitro-modules` JS expects on
 // every platform (`TurboModuleRegistry.getEnforcing('NitroModules').install()`).
 //
-// On iOS/Android this module ships in its own binary. On Windows there is no standalone
-// `NitroModules.dll` yet (https://github.com/mrousavy/nitro/issues/168), so this source file
-// is compiled *into the consuming Nitro module's* DLL via `windows/NitroModules.targets`.
-// `install()` only wires up Nitro's JSI entry point - registering HybridObjects stays the
-// responsibility of the consuming module (do it from your own `IReactPackageProvider`).
+// This is compiled into the shared `NitroModules.dll` (see `NitroModules.vcxproj`), which
+// React Native Windows autolinks into the app. `install()` only wires up Nitro's JSI entry
+// point - registering HybridObjects stays the responsibility of each consuming Nitro module
+// (do it from your own `IReactPackageProvider`).
 REACT_MODULE(NitroModules, L"NitroModules")
 struct NitroModules
 {

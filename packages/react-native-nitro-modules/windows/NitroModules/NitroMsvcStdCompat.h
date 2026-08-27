@@ -1,8 +1,9 @@
 #pragma once
 
 // Nitro's C++ sources rely on transitive libc++ includes that MSVC's STL does not
-// pull in implicitly. `NitroModules.props` force-includes this header into every
-// translation unit so those standard headers are always available.
+// pull in implicitly. `NitroModules.vcxproj` and `ConsumeNitroModules.props`
+// force-include this header into every translation unit so those standard headers
+// are always available.
 
 #include <exception>
 #include <functional>
