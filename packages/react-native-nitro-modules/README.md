@@ -12,6 +12,8 @@
 
 It uses JSI to generate C++ templates that can bridge virtually any JS type to a C++ type with minimal overhead.
 
+> iOS and Android are fully supported. Windows support is experimental — see [`windows/README.md`](./windows/README.md) and the [Windows guide](https://nitro.margelo.com/docs/guides/windows).
+
 ## Installation
 
 ### Inside an app

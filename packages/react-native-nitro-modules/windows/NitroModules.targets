@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adds Nitro's C++ sources (from `cpp/`), the Windows platform layer, and the
+  `NitroModules` TurboModule installer to the importing Nitro module's .vcxproj.
+
+  Import near the bottom of the .vcxproj, after Microsoft.Cpp.targets:
+    <Import Project="$(NitroModulesDir)windows\NitroModules.targets" />
+
+  The `cpp/` source list is enumerated explicitly (not globbed) so that a new
+  platform-specific source added upstream cannot silently break the Windows build.
+  `cpp/views/` is intentionally excluded - Hybrid Views are not supported on Windows yet.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="NitroModules">
+    <NitroModulesDir Condition="'$(NitroModulesDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))\</NitroModulesDir>
+    <NitroModulesCppDir Condition="'$(NitroModulesCppDir)' == ''">$(NitroModulesDir)cpp\</NitroModulesCppDir>
+    <NitroModulesWindowsDir Condition="'$(NitroModulesWindowsDir)' == ''">$(MSBuildThisFileDirectory)</NitroModulesWindowsDir>
+    <NitroIncludeShimScript>$([System.IO.Path]::GetFullPath('$(NitroModulesDir)scripts\generate-windows-shims.mjs'))</NitroIncludeShimScript>
+    <NitroIncludeShimOutDir>$(NitroModulesWindowsDir)include\NitroModules</NitroIncludeShimOutDir>
+  </PropertyGroup>
+
+  <ItemGroup Label="Nitro C++ (shared, cpp/)">
+    <ClCompile Include="$(NitroModulesCppDir)core\AnyMap.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)core\ArrayBuffer.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)core\BoxedHybridObject.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)core\HybridObject.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)core\Promise.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)entrypoint\HybridNitroModulesProxy.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)entrypoint\InstallNitro.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)jsi\JSICache.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)prototype\HybridObjectPrototype.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)registry\HybridObjectRegistry.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)threading\Dispatcher.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)threading\ThreadPool.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)utils\CommonGlobals.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)utils\NitroTypeInfo.cpp" />
+    <ClCompile Include="$(NitroModulesCppDir)utils\PropNameIDCache.cpp" />
+  </ItemGroup>
+
+  <ItemGroup Label="Nitro Windows platform layer">
+    <ClInclude Include="$(NitroModulesWindowsDir)NitroMsvcStdCompat.h" />
+    <ClInclude Include="$(NitroModulesWindowsDir)src\NitroModulesModule.h" />
+    <ClInclude Include="$(NitroModulesWindowsDir)src\threading\UIThreadDispatcher.hpp" />
+    <ClCompile Include="$(NitroModulesWindowsDir)src\NitroModulesModule.cpp" />
+    <ClCompile Include="$(NitroModulesWindowsDir)src\platform\NitroLogger.cpp" />
+    <ClCompile Include="$(NitroModulesWindowsDir)src\platform\ThreadUtils.cpp" />
+    <ClCompile Include="$(NitroModulesWindowsDir)src\threading\UIThreadDispatcher.cpp" />
+  </ItemGroup>
+
+  <!--
+    Nitrogen and Nitro emit `#include <NitroModules/Foo.hpp>`. iOS gets that prefix from the
+    podspec `header_dir`, Android from the prefab. MSVC has neither, so generate one-line
+    shim headers before every compile. Kept in sync with `cpp/` on each build.
+  -->
+  <Target Name="GenerateNitroIncludeShims" BeforeTargets="ClCompile;ClCompilePrepare;ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(NitroIncludeShimScript)')"
+           Text="Missing Nitro Windows include-shim generator: $(NitroIncludeShimScript)" />
+    <Message Importance="high" Text="NitroModules: generating &lt;NitroModules/*.hpp&gt; include shims" />
+    <!-- Trailing '\' before the closing quote would escape it, so pass '$(Dir).' instead. -->
+    <Exec Command="node &quot;$(NitroIncludeShimScript)&quot; --nitro &quot;$(NitroModulesDir).&quot; --out &quot;$(NitroIncludeShimOutDir)&quot;" />
+  </Target>
+</Project>
