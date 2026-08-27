@@ -43,6 +43,17 @@ export class NitroConfig {
   }
 
   /**
+   * Returns the Windows module name, used to name the generated MSBuild property
+   * sheet and autolinking entry point. Defaults to {@linkcode getAndroidCxxLibName}.
+   * @example `NitroTest`
+   */
+  getWindowsProjectName(): string {
+    return (
+      this.config.windows?.windowsProjectName ?? this.config.android.androidCxxLibName
+    )
+  }
+
+  /**
    * Returns the iOS module name (aka Pod name) of the module that will be generated.
    * @example `NitroTest`
    */

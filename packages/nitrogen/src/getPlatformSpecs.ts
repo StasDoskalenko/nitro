@@ -9,6 +9,9 @@ export type Language = Required<PlatformSpec>[keyof PlatformSpec]
 const platformLanguages: { [K in Platform]: Language[] } = {
   ios: ['swift', 'c++'],
   android: ['kotlin', 'c++'],
+  // Windows has no bridged language - a Nitro module on Windows compiles the shared
+  // C++ specs and links the shared NitroModules.dll.
+  windows: ['c++'],
 }
 const allPlatforms = Object.keys(platformLanguages) as Platform[]
 const allLanguages = Object.values(platformLanguages).flatMap((l) => l)

@@ -202,6 +202,25 @@ export const NitroUserConfigSchema = z.object({
       .refine(isNotReservedKeyword, isReservedKeywordError),
   }),
   /**
+   * Windows specific options. Optional - only needed if a `HybridObject` declares
+   * `windows: 'c++'`. Windows compiles the shared C++ specs and links the shared
+   * `NitroModules.dll`, so there is no bridged language here.
+   */
+  windows: z
+    .object({
+      /**
+       * The name of the Windows module. Used to name the generated MSBuild
+       * property sheet (`<name>+autolinking.props`) and the autolinking C++
+       * entry point. Defaults to `android.androidCxxLibName`.
+       * @example `NitroTest`
+       */
+      windowsProjectName: z
+        .string()
+        .regex(safeNamePattern)
+        .refine(isNotReservedKeyword, isReservedKeywordError),
+    })
+    .optional(),
+  /**
    * Configures the code that gets generated for autolinking (registering)
    * Hybrid Object constructors.
    *
