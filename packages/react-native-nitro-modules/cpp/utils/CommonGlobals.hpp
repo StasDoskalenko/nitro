@@ -8,6 +8,7 @@
 #pragma once
 
 #include "BorrowingReference.hpp"
+#include "NitroDefines.hpp"
 #include <jsi/jsi.h>
 #include <unordered_map>
 
@@ -35,7 +36,7 @@ struct ComputedPropertyDescriptor {
 
 enum class KnownGlobalPropertyName { DISPATCHER, JSI_CACHE, NITRO_MODULES_PROXY };
 
-class CommonGlobals final {
+class NITRO_EXPORT CommonGlobals final {
 public:
   CommonGlobals() = delete;
   ~CommonGlobals() = delete;
@@ -58,7 +59,7 @@ public:
   /**
    * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
    */
-  class Object final {
+  class NITRO_EXPORT Object final {
   public:
     Object() = delete;
     ~Object() = delete;
@@ -97,7 +98,7 @@ public:
   /**
    * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
    */
-  class Promise final {
+  class NITRO_EXPORT Promise final {
   public:
     Promise() = delete;
     ~Promise() = delete;
@@ -113,7 +114,7 @@ public:
   /**
    * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
    */
-  class Date final {
+  class NITRO_EXPORT Date final {
   public:
     Date() = delete;
     ~Date() = delete;
@@ -125,7 +126,7 @@ public:
   /**
    * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
    */
-  class Error final {
+  class NITRO_EXPORT Error final {
   public:
     Error() = delete;
     ~Error() = delete;

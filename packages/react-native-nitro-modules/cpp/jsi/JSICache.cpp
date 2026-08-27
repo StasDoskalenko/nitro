@@ -12,6 +12,8 @@
 
 namespace margelo::nitro {
 
+std::unordered_map<jsi::Runtime*, std::weak_ptr<JSICache>> JSICache::_globalCache;
+
 template <typename T>
 inline void destroyReferences(const std::vector<WeakReference<T>>& references) {
   for (auto& func : references) {

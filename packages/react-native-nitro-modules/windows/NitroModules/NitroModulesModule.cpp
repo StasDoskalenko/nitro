@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "NitroModulesModule.h"
 
 #include <windows.h>

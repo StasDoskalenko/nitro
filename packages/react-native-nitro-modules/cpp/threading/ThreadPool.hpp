@@ -20,7 +20,7 @@
 
 namespace margelo::nitro {
 
-class ThreadPool final {
+class NITRO_EXPORT ThreadPool final {
 public:
   /**
    * Create a new ThreadPool with the given number of minimum workers/threads.

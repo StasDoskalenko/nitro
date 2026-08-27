@@ -8,12 +8,13 @@
 #pragma once
 
 #include "Dispatcher.hpp"
+#include "NitroDefines.hpp"
 #include <memory>
 #include <string>
 
 namespace margelo::nitro {
 
-class ThreadUtils final {
+class NITRO_EXPORT ThreadUtils final {
 public:
   ThreadUtils() = delete;
 

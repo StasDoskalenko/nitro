@@ -16,7 +16,7 @@
 
 namespace margelo::nitro {
 
-struct TypeInfo final {
+struct NITRO_EXPORT TypeInfo final {
 public:
   TypeInfo() = delete;
 

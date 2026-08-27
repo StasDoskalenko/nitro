@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Microsoft.ReactNative Experimental Features">
+    <!-- Used when building windows/NitroModules.sln on its own. Consuming apps override
+         this via their own SolutionDir copy. -->
+    <RnwNewArch>true</RnwNewArch>
+    <UseExperimentalNuget>true</UseExperimentalNuget>
+    <ReactExperimentalFeaturesSet>true</ReactExperimentalFeaturesSet>
+  </PropertyGroup>
+</Project>

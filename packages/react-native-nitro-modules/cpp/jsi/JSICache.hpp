@@ -8,6 +8,7 @@
 #pragma once
 
 #include "BorrowingReference.hpp"
+#include "NitroDefines.hpp"
 #include "NitroLogger.hpp"
 #include "WeakReference.hpp"
 #include <jsi/jsi.h>
@@ -33,7 +34,7 @@ class JSICacheReference;
  * the same Thread that it was created on. This ensures that the `jsi::Runtime` cannot
  * delete it while you are still using it.
  */
-class JSICache final : public jsi::NativeState {
+class NITRO_EXPORT JSICache final : public jsi::NativeState {
 public:
   ~JSICache();
 
@@ -67,7 +68,9 @@ private:
   std::vector<WeakReference<jsi::ArrayBuffer>> _arrayBufferCache;
 
 private:
-  static inline std::unordered_map<jsi::Runtime*, std::weak_ptr<JSICache>> _globalCache;
+  // Non-inline on purpose: when Nitro is a shared library (`NITRO_EXPORT`), this must be a
+  // single process-wide definition owned by the library, not one copy per consumer.
+  static std::unordered_map<jsi::Runtime*, std::weak_ptr<JSICache>> _globalCache;
 
 private:
   static constexpr auto TAG = "JSICache";

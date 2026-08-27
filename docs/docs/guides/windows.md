@@ -5,37 +5,42 @@ description: How to build and ship a Nitro module for React Native Windows.
 # Windows
 
 :::warning Experimental
-Windows support is new and evolving. It currently targets **one Nitro module per app**
-and does not support Hybrid Views. Track progress in
+Windows support is new and evolving. It does not support Hybrid Views yet, and there is no
+Nitrogen Windows codegen — the per-module build wiring is manual. Track progress in
 [nitro#168](https://github.com/mrousavy/nitro/issues/168).
 :::
 
 ## How Nitro installs on Windows
 
-On iOS and Android, `react-native-nitro-modules` builds one shared binary that every
-Nitro module links against, so `margelo::nitro::install()` and the `HybridObjectRegistry`
-live in a single place.
+`react-native-nitro-modules` builds a shared **`NitroModules.dll`** on Windows, just like it
+builds `libNitroModules.so` on Android and a framework on iOS. React Native Windows
+autolinks it into the app, where it:
 
-Windows has no standalone `NitroModules.dll` yet. Instead, **your Nitro module compiles
-Nitro's `cpp/` sources directly into its own React Native Windows module DLL**, and that
-same DLL implements the `NitroModules` TurboModule that the JS expects:
+- compiles the shared Nitro core (`cpp/`),
+- implements the `NitroModules` TurboModule the JS calls
+  (`TurboModuleRegistry.getEnforcing('NitroModules').install()`),
+- owns the process-wide `HybridObjectRegistry` and the per-`jsi::Runtime` caches.
 
 ```
-JS   TurboModuleRegistry.getEnforcing('NitroModules').install()
-       │
-       ▼
-WinRT REACT_MODULE(NitroModules) in <your-module>.dll
-       install()  →  margelo::nitro::install(runtime, CallInvokerDispatcher)
-       │
-       ▼
-     global.NitroModulesProxy  →  your HybridObjects
+JS    TurboModuleRegistry.getEnforcing('NitroModules').install()
+        │
+        ▼
+      REACT_MODULE(NitroModules) in NitroModules.dll
+        install()  →  margelo::nitro::install(runtime, CallInvokerDispatcher)
+        │
+        ▼
+      global.NitroModulesProxy   ◄── HybridObjectRegistry (shared)
+        ▲
+        │  registerHybridObjectConstructor("MyObject", …)
+      your module DLL  (links NitroModules.lib, compiles only its own specs)
 ```
 
-`react-native-nitro-modules` ships the reusable build glue under
-[`windows/`](https://github.com/mrousavy/nitro/tree/main/packages/react-native-nitro-modules/windows):
-MSBuild `.props`/`.targets`, the `REACT_MODULE(NitroModules)` installer, the Windows
-implementations of `NitroLogger`/`ThreadUtils`, and a generator for the
-`<NitroModules/*.hpp>` include shims MSVC needs.
+Because every module links the **same** `NitroModules.dll`, **multiple Nitro modules per
+app work**.
+
+The public core classes are tagged with `NITRO_EXPORT` (in `cpp/utils/NitroDefines.hpp`):
+`__declspec(dllexport)` when building `NitroModules.dll`, `__declspec(dllimport)` when a
+module consumes it, and a no-op on iOS / Android / any other target.
 
 ## Requirements
 
@@ -43,6 +48,7 @@ implementations of `NitroLogger`/`ThreadUtils`, and a generator for the
 - Visual Studio 2022 (MSVC v143) or 2026 (MSVC v145) with **Desktop development with C++** and the **Windows App SDK / WinUI** workload
 - Windows SDK **10.0.26100**
 - Node.js on `PATH` — the include-shim generator runs as an MSBuild step
+- Every native module in the app built with the **same** MSVC toolset (the `NITRO_EXPORT` ABI is not stable across toolsets; RNW already enforces one toolset per app)
 
 Run [`rnw-dependencies.ps1`](https://microsoft.github.io/react-native-windows/docs/rnw-dependencies) from an elevated PowerShell prompt if anything is missing.
 
@@ -52,15 +58,12 @@ Your module needs a React Native Windows C++ module project (`windows/<Name>/<Na
 plus a `.sln`). Start from a `react-native-windows` "cpp-lib" template, then wire in Nitro:
 
 ```xml
-<!-- Resolve the package. A consumer can also set NitroModulesDir explicitly. -->
 <PropertyGroup Label="ReactNativeWindowsProps">
   <NitroModulesDir Condition="'$(NitroModulesDir)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(SolutionDir), 'node_modules\react-native-nitro-modules\package.json'))\node_modules\react-native-nitro-modules\</NitroModulesDir>
 </PropertyGroup>
 
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-<Import Project="$(NitroModulesDir)windows\NitroModules.props" />
-
-<!-- ... your project configuration ... -->
+<Import Project="$(NitroModulesDir)windows\ConsumeNitroModules.props" />
 
 <ItemGroup>
   <!-- Your Nitrogen output + HybridObject implementations -->
@@ -69,18 +72,21 @@ plus a `.sln`). Start from a `react-native-windows` "cpp-lib" template, then wir
 </ItemGroup>
 
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-<Import Project="$(NitroModulesDir)windows\NitroModules.targets" />
+<Import Project="$(NitroModulesDir)windows\ConsumeNitroModules.targets" />
 ```
 
-`NitroModules.props` sets C++20, the include paths for `cpp/`, the forced-include for
-MSVC standard-library gaps, and warning suppressions. `NitroModules.targets` adds Nitro's
-`cpp/` sources, the Windows platform layer, and the `NitroModules` installer, and
-regenerates `windows/include/NitroModules/*.hpp` before each compile.
+- `ConsumeNitroModules.props` sets `NITRO_USING_SHARED_LIBRARY`, C++20, the `cpp/` include
+  paths, and the MSVC standard-library compat forced-include.
+- `ConsumeNitroModules.targets` adds a `ProjectReference` to `NitroModules.vcxproj` (so it
+  builds first and `NitroModules.lib` is linked) and regenerates the
+  `<NitroModules/*.hpp>` shims before each compile.
+
+Do **not** add Nitro's `cpp/*.cpp` to your project — they live in `NitroModules.dll`.
 
 ### Registering your HybridObjects
 
-The bundled installer only calls `margelo::nitro::install()`. Register your
-HybridObjects from your module's own `IReactPackageProvider` (or a `REACT_INIT` method):
+`NitroModules.dll` only calls `margelo::nitro::install()`. Register your HybridObjects from
+your module's own `IReactPackageProvider` (or a `REACT_INIT` method):
 
 ```cpp
 #include <NitroModules/HybridObjectRegistry.hpp>
@@ -92,8 +98,7 @@ margelo::nitro::HybridObjectRegistry::registerHybridObjectConstructor(
 ### App setup
 
 Autolink your module's `.vcxproj` from the app's `react-native.config.js` as usual.
-`react-native-nitro-modules` itself declares `platforms.windows: null`, so there is
-nothing extra to exclude.
+`react-native-nitro-modules` autolinks `NitroModules.dll` on its own.
 
 ```js
 // <your-module>/react-native.config.js
@@ -126,7 +131,7 @@ app in Release and runs UI flows against it.
 
 | | Status |
 | --- | --- |
-| One Nitro module per app | Multiple modules would each compile their own `HybridObjectRegistry`. A standalone exported `NitroModules.dll` is the fix ([#168](https://github.com/mrousavy/nitro/issues/168)). |
 | Hybrid Views | Not supported — `cpp/views/` is not compiled. |
-| Nitrogen autolinking | No Windows output yet — register HybridObjects by hand. |
-| Architectures | `x64` and `ARM64` (matches RNW New Arch). |
+| Nitrogen autolinking | No Windows output yet — import `ConsumeNitroModules.*` and register HybridObjects by hand. |
+| Toolset | All native modules in the app must use the same MSVC toolset. |
+| Architectures | `x64` and `ARM64`. |

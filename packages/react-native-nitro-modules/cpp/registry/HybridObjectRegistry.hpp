@@ -8,6 +8,7 @@
 #pragma once
 
 #include "HybridObject.hpp"
+#include "NitroDefines.hpp"
 #include <functional>
 #include <string>
 
@@ -17,7 +18,7 @@ namespace margelo::nitro {
  * A registry that holds initializers for HybridObjects.
  * This will be used to initialize them from JS using `NitroModules.createHybridObject<T>(name)`.
  */
-class HybridObjectRegistry {
+class NITRO_EXPORT HybridObjectRegistry {
 public:
   HybridObjectRegistry() = delete;
 

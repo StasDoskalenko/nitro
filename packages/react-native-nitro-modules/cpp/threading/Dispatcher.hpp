@@ -15,7 +15,7 @@ namespace margelo::nitro {
 
 using namespace facebook;
 
-class Dispatcher : public jsi::NativeState {
+class NITRO_EXPORT Dispatcher : public jsi::NativeState {
 public:
   /**
    Installs the Dispatcher into the given Runtime.

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Import this from a Nitro module's .vcxproj after Microsoft.Cpp.targets:
+    <Import Project="$(NitroModulesDir)windows\ConsumeNitroModules.targets" />
+
+  It regenerates the `<NitroModules/*.hpp>` include shims before every compile, and adds a
+  ProjectReference to the shared `NitroModules.vcxproj` so it is built first and its
+  `NitroModules.lib` is linked automatically.
+
+  If you would rather wire the reference yourself (e.g. your app solution already includes
+  NitroModules), define `NitroModulesSkipProjectReference=true` before importing and add the
+  reference / AdditionalDependencies manually.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="NitroModules">
+    <NitroModulesDir Condition="'$(NitroModulesDir)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(SolutionDir), 'node_modules\react-native-nitro-modules\package.json'))\node_modules\react-native-nitro-modules\</NitroModulesDir>
+    <NitroModulesWindowsDir Condition="'$(NitroModulesWindowsDir)' == ''">$(NitroModulesDir)windows\</NitroModulesWindowsDir>
+    <NitroShimScript>$([System.IO.Path]::GetFullPath('$(NitroModulesDir)scripts\generate-windows-shims.mjs'))</NitroShimScript>
+    <NitroShimOutDir>$(NitroModulesWindowsDir)include\NitroModules</NitroShimOutDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(NitroModulesSkipProjectReference)' != 'true'">
+    <ProjectReference Include="$(NitroModulesWindowsDir)NitroModules\NitroModules.vcxproj">
+      <Project>{2B9A6C31-6D4E-4C8A-9F1B-7E0A2D4C6B85}</Project>
+      <!-- Link NitroModules.lib, but do not embed its .winmd as a .NET reference. -->
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Target Name="GenerateNitroIncludeShims" BeforeTargets="ClCompile;ClCompilePrepare;ResolveProjectReferences">
+    <Error Condition="!Exists('$(NitroShimScript)')" Text="Missing Nitro Windows include-shim generator: $(NitroShimScript)" />
+    <Message Importance="high" Text="NitroModules: generating &lt;NitroModules/*.hpp&gt; include shims" />
+    <Exec Command="node &quot;$(NitroShimScript)&quot; --nitro &quot;$(NitroModulesDir).&quot; --out &quot;$(NitroShimOutDir)&quot;" />
+  </Target>
+</Project>

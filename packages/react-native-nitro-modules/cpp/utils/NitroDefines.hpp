@@ -24,6 +24,26 @@
 #endif
 #endif
 
+// Symbol visibility for the Nitro core library.
+//
+// On Windows, Nitro can be built as a shared `NitroModules.dll` that multiple Nitro modules
+// link against, so that `install()` and the `HybridObjectRegistry` (and the various
+// per-`jsi::Runtime` caches) are process-wide singletons - mirroring the shared
+// framework/`.so` on iOS/Android. MSVC exports nothing from a DLL by default, so the public
+// core classes are tagged with `NITRO_EXPORT`:
+//   - building `NitroModules.dll`   (NITRO_BUILDING_SHARED_LIBRARY) -> __declspec(dllexport)
+//   - a module consuming that DLL   (NITRO_USING_SHARED_LIBRARY)    -> __declspec(dllimport)
+//   - iOS / Android / static / any other target                    -> empty (default visibility)
+#if defined(_MSC_VER) && (defined(NITRO_BUILDING_SHARED_LIBRARY) || defined(NITRO_USING_SHARED_LIBRARY))
+#if defined(NITRO_BUILDING_SHARED_LIBRARY)
+#define NITRO_EXPORT __declspec(dllexport)
+#else
+#define NITRO_EXPORT __declspec(dllimport)
+#endif
+#else
+#define NITRO_EXPORT
+#endif
+
 // Helper to find out if a C++ compiler attribute is available
 #ifdef __has_attribute
 #define _CXX_INTEROP_HAS_ATTRIBUTE(x) __has_attribute(x)

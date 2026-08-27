@@ -301,7 +301,7 @@ private:
 
 // Specialization for void
 template <>
-class Promise<void> final {
+class NITRO_EXPORT Promise<void> final {
 public:
   using OnResolvedFunc = std::function<void()>;
   using OnRejectedFunc = std::function<void(const std::exception_ptr&)>;
