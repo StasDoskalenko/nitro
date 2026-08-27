@@ -150,6 +150,9 @@
     <ClCompile Include="ReactPackageProvider.cpp">
       <DependentUpon>ReactPackageProvider.idl</DependentUpon>
     </ClCompile>
+    <!-- C++/WinRT module glue (defines WINRT_GetActivationFactory / WINRT_CanUnloadNow
+         referenced by NitroModules.def). -->
+    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="platform\NitroLogger.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
