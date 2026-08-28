@@ -119,5 +119,9 @@
         }
       }
     }
+  },
+  "patchedDependencies": {
+    "@react-native-harness/config@1.4.1": "patches/@react-native-harness%2Fconfig@1.4.1.patch",
+    "@react-native-harness/runtime@1.4.1": "patches/@react-native-harness%2Fruntime@1.4.1.patch"
   }
 }

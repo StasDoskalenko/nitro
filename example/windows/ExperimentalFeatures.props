@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup Label="Microsoft.ReactNative Experimental Features">
+    <!--
+      Required for building a New Architecture project.
+
+      App projects should not change this value.
+
+      See https://microsoft.github.io/react-native-windows/docs/new-architecture
+    -->
+    <RnwNewArch>true</RnwNewArch>
+
+    <!--
+      Changes compilation to assume use of Microsoft.ReactNative NuGet packages
+      instead of building the framework from source. Defaults to true.
+
+      This is set during app project creation and should not be changed.
+
+      See https://microsoft.github.io/react-native-windows/docs/nuget
+    -->
+    <UseExperimentalNuget>true</UseExperimentalNuget>
+
+    <ReactExperimentalFeaturesSet>true</ReactExperimentalFeaturesSet>
+
+    <!--
+      React Native Windows 0.85.0-preview.1 still defaults the Windows SDK to
+      10.0.22621.0. Pin the whole solution (this file is also imported by the
+      autolinked react-native-nitro-modules\windows\NitroModules.vcxproj via
+      $(SolutionDir)\ExperimentalFeatures.props) to 10.0.26100.0, which RNW's
+      New-Arch floor accepts and which the CI image / dev boxes ship. Drop this
+      once RNW 0.85 is stable and defaults forward.
+    -->
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0.26100.0</WindowsTargetPlatformVersion>
+    <TargetPlatformVersion Condition="'$(TargetPlatformVersion)' == ''">10.0.26100.0</TargetPlatformVersion>
+  </PropertyGroup>
+
+</Project>

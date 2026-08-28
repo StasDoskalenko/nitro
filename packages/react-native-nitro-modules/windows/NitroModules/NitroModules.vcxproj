@@ -80,6 +80,13 @@
   </ImportGroup>
   <ImportGroup Label="ReactNativeWindowsPropertySheets">
     <Import Project="$(ReactNativeWindowsDir)\PropertySheets\External\Microsoft.ReactNative.CppLib.props" Condition="Exists('$(ReactNativeWindowsDir)\PropertySheets\External\Microsoft.ReactNative.CppLib.props')" />
+    <!-- Match the CRT model of the consuming RNW app. Since RNW 0.85 the Composition
+         (Win32) app template links the "hybrid" CRT (static vcruntime + STL, dynamic
+         UCRT) via HybridCRT.props. NitroModules.dll exchanges std:: objects
+         (strings, functions, shared_ptr) across the DLL boundary, so it must use the
+         exact same model - a plain /MDd DLL against a hybrid-CRT app corrupts the
+         heap and fast-fails during instance init. -->
+    <Import Project="$(ReactNativeWindowsDir)\PropertySheets\HybridCRT.props" Condition="Exists('$(ReactNativeWindowsDir)\PropertySheets\HybridCRT.props')" />
   </ImportGroup>
   <ItemDefinitionGroup>
     <ClCompile>
