@@ -94,7 +94,7 @@
       <AdditionalOptions>%(AdditionalOptions) /bigobj /Zc:__cplusplus</AdditionalOptions>
       <!-- 4251/4275: STL/base types across the DLL boundary - safe because every module in
            an RNW app is built with one toolset. -->
-      <DisableSpecificWarnings>4100;4244;4251;4267;4275;4453;28204</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4068;4100;4244;4251;4267;4275;4453;4715;28204</DisableSpecificWarnings>
       <PreprocessorDefinitions>_WINRT_DLL;NITRO_BUILDING_SHARED_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>$(WindowsSDK_WindowsMetadata);$(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalIncludeDirectories>

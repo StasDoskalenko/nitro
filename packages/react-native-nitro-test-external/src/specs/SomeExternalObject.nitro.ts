@@ -15,6 +15,8 @@ export interface OptionalPrimitivesHolder {
 export interface SomeExternalObject extends HybridObject<{
   ios: 'swift'
   android: 'kotlin'
+  // C++ base only - consumed by react-native-nitro-test's C++ HybridObject on Windows.
+  windows: 'c++'
 }> {
   getValue(): string
 
