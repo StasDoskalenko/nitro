@@ -1,5 +1,6 @@
 import type { SourceFile } from '../syntax/SourceFile.js'
 import type { Autolinking } from './Autolinking.js'
+import { createHeaderShims } from './windows/createHeaderShims.js'
 import { createHybridObjectInitializer } from './windows/createHybridObjectInitializer.js'
 import { createMSBuildExtension } from './windows/createMSBuildExtension.js'
 
@@ -10,9 +11,14 @@ export function createWindowsAutolinking(
 ): WindowsAutolinking {
   const msbuildExtension = createMSBuildExtension(allFiles)
   const hybridObjectInitializer = createHybridObjectInitializer()
+  const headerShims = createHeaderShims(allFiles)
 
   return {
     platform: 'windows',
-    sourceFiles: [...msbuildExtension, ...hybridObjectInitializer],
+    sourceFiles: [
+      ...msbuildExtension,
+      ...hybridObjectInitializer,
+      ...headerShims,
+    ],
   }
 }

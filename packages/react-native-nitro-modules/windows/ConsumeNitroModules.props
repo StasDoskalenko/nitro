@@ -27,7 +27,7 @@
       <AdditionalOptions>%(AdditionalOptions) /bigobj /Zc:__cplusplus</AdditionalOptions>
       <ForcedIncludeFiles>%(ForcedIncludeFiles);NitroMsvcStdCompat.h</ForcedIncludeFiles>
       <PreprocessorDefinitions>NOMINMAX;WIN32_LEAN_AND_MEAN;NITRO_USING_SHARED_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>%(DisableSpecificWarnings);4100;4244;4251;4267;4275;4453;28204</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings);4068;4100;4244;4251;4267;4275;4453;4715;28204</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>
         $(NitroModulesWindowsDir)NitroModules;
         $(NitroModulesWindowsDir)include;

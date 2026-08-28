@@ -10,6 +10,10 @@ on:
       - 'packages/react-native-nitro-modules/windows/**'
       - 'packages/nitrogen/src/autolinking/windows/**'
       - 'packages/nitrogen/src/autolinking/createWindowsAutolinking.ts'
+      - 'packages/react-native-nitro-test/cpp/**'
+      - 'packages/react-native-nitro-test/windows/**'
+      - '**/nitrogen/generated/shared/**'
+      - '**/nitrogen/generated/windows/**'
       - '**/bun.lock'
   pull_request:
     paths:
@@ -18,17 +22,31 @@ on:
       - 'packages/react-native-nitro-modules/windows/**'
       - 'packages/nitrogen/src/autolinking/windows/**'
       - 'packages/nitrogen/src/autolinking/createWindowsAutolinking.ts'
+      - 'packages/react-native-nitro-test/cpp/**'
+      - 'packages/react-native-nitro-test/windows/**'
+      - '**/nitrogen/generated/shared/**'
+      - '**/nitrogen/generated/windows/**'
       - '**/bun.lock'
 
 jobs:
   build:
-    name: Build NitroModules.dll (MSVC)
+    name: Build ${{ matrix.name }} (MSVC, ${{ matrix.configuration }})
     # windows-2025 ships VS 2022/2026 (MSVC v143/v145), the Windows 10.0.26100 SDK and NuGet.
     runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
         configuration: [Debug, Release]
+        include:
+          # The shared Nitro core: compiles all of cpp/ + the Windows platform layer and
+          # links NitroModules.dll with the NITRO_EXPORT ABI.
+          - name: NitroModules.dll
+            solution: packages/react-native-nitro-modules/windows/NitroModules.sln
+          # Compile-only: does the full Nitrogen-generated type-system C++ (every
+          # JSIConverter<T> reachable from HybridTestObjectCpp + a cross-module
+          # <NitroTestExternal/...> include) build on MSVC?
+          - name: NitroTest type-system
+            solution: packages/react-native-nitro-test/windows/NitroTestCompileCheck.sln
     steps:
       - uses: actions/checkout@v4
 
@@ -48,10 +66,10 @@ jobs:
           $dir = (Resolve-Path (Split-Path $pkg.FullName)).Path + '\'
           "dir=$dir" >> $env:GITHUB_OUTPUT
 
-      - name: Build NitroModules.sln (${{ matrix.configuration }}|x64)
+      - name: Build ${{ matrix.name }} (${{ matrix.configuration }}|x64)
         shell: pwsh
         run: |
-          msbuild packages/react-native-nitro-modules/windows/NitroModules.sln `
+          msbuild ${{ matrix.solution }} `
             /t:restore,build `
             /p:Configuration=${{ matrix.configuration }} `
             /p:Platform=x64 `

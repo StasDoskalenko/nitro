@@ -15,6 +15,7 @@ export interface OptionalPrimitivesHolder {
 export interface SomeExternalObject extends HybridObject<{
   ios: 'swift'
   android: 'kotlin'
+  windows: 'c++'
 }> {
   getValue(): string
 

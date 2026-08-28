@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Compile-only regression check for Windows: does the full Nitrogen-generated
+  type-system C++ - every JSIConverter<T> reachable from HybridTestObjectCpp, plus
+  a cross-module `#include <NitroTestExternal/...>` - build on MSVC?
+
+  StaticLibrary: no linking, no runtime. Built by .github/workflows/build-windows.yml.
+  It consumes the generated `NitroTest+autolinking.props` exactly like a real Nitro
+  module would, and pulls the external module in the way a consumer declares an
+  external Nitro dependency (its `nitrogen/generated/windows` shim dir + spec .cpp).
+-->
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)\ExperimentalFeatures.props" Condition="Exists('$(SolutionDir)\ExperimentalFeatures.props')" />
+  <PropertyGroup Label="Globals">
+    <CppWinRTOptimized>true</CppWinRTOptimized>
+    <MinimalCoreWin>true</MinimalCoreWin>
+    <ProjectGuid>{4D9E1C22-7A6B-4F03-9C8D-2E5A1B7F0C93}</ProjectGuid>
+    <ProjectName>NitroTestCompileCheck</ProjectName>
+    <RootNamespace>NitroTestCompileCheck</RootNamespace>
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0</WindowsTargetPlatformVersion>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <MinimumVisualStudioVersion>17.0</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <PropertyGroup Label="NitroProps">
+    <ReactNativeWindowsDir Condition="'$(ReactNativeWindowsDir)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(SolutionDir), 'node_modules\react-native-windows\package.json'))\node_modules\react-native-windows\</ReactNativeWindowsDir>
+    <NitroModulesDir Condition="'$(NitroModulesDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\react-native-nitro-modules\'))</NitroModulesDir>
+    <NitroTestDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</NitroTestDir>
+    <NitroTestExternalDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\react-native-nitro-test-external\'))</NitroTestExternalDir>
+    <RunAutolinkCheck>false</RunAutolinkCheck>
+    <RunCodegenWindows>false</RunCodegenWindows>
+    <!-- StaticLibrary: compile only, no link - don't build NitroModules.dll. -->
+    <NitroModulesSkipProjectReference>true</NitroModulesSkipProjectReference>
+  </PropertyGroup>
+  <Import Project="$(ReactNativeWindowsDir)\PropertySheets\External\Microsoft.ReactNative.WindowsSdk.Default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <GenerateManifest>false</GenerateManifest>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' or '$(PlatformToolset)' == 'v100'">$(DefaultPlatformToolset)</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration"><UseDebugLibraries>true</UseDebugLibraries></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration"><UseDebugLibraries>false</UseDebugLibraries></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="ReactNativeWindowsPropertySheets">
+    <Import Project="$(ReactNativeWindowsDir)\PropertySheets\External\Microsoft.ReactNative.CppLib.props" Condition="Exists('$(ReactNativeWindowsDir)\PropertySheets\External\Microsoft.ReactNative.CppLib.props')" />
+  </ImportGroup>
+
+  <!-- Consume the generated autolinking props (imports ConsumeNitroModules.props,
+       adds NitroTest's shared specs + include dirs). -->
+  <Import Project="$(NitroTestDir)nitrogen\generated\windows\NitroTest+autolinking.props" />
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>
+        $(NitroTestDir)cpp;
+        $(NitroTestExternalDir)nitrogen\generated\windows;
+        $(NitroTestExternalDir)nitrogen\generated\shared\c++;
+        %(AdditionalIncludeDirectories)
+      </AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <!-- NitroTest's own C++ HybridObject implementation (the comprehensive one). -->
+    <ClCompile Include="$(NitroTestDir)cpp\HybridTestObjectCpp.cpp" />
+    <!-- The external module's generated spec, pulled in the same way a consumer
+         would declare a `find_package` / pod dependency. -->
+    <ClCompile Include="$(NitroTestExternalDir)nitrogen\generated\shared\c++\HybridSomeExternalObjectSpec.cpp" />
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ReactNativeWindowsTargets">
+    <Import Project="$(ReactNativeWindowsDir)\PropertySheets\External\Microsoft.ReactNative.CppLib.targets" Condition="Exists('$(ReactNativeWindowsDir)\PropertySheets\External\Microsoft.ReactNative.CppLib.targets')" />
+  </ImportGroup>
+  <Import Project="$(NitroTestDir)nitrogen\generated\windows\NitroTest+autolinking.targets" />
+</Project>
