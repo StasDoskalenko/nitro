@@ -1,0 +1,21 @@
+diff --git a/dist/reader.js b/dist/reader.js
+index 6c1996c6c8be24e53f8c1308b0e0cfc6dbda9955..ef6bbfcaeb318dec10d74c233c8a2a007d9317b3 100644
+--- a/dist/reader.js
++++ b/dist/reader.js
+@@ -1,6 +1,7 @@
+ import { ConfigSchema } from './types.js';
+ import { ConfigValidationError, ConfigNotFoundError, ConfigLoadError, } from './errors.js';
+ import path from 'node:path';
++import { pathToFileURL } from 'node:url';
+ import fs from 'node:fs';
+ import { createRequire } from 'node:module';
+ import { ZodError } from 'zod';
+@@ -13,7 +14,7 @@ const importUp = async (dir, name) => {
+             let rawConfig;
+             try {
+                 if (ext === '.mjs') {
+-                    rawConfig = await import(filePathWithExt).then((module) => module.default);
++                    rawConfig = await import(pathToFileURL(filePathWithExt).href).then((module) => module.default);
+                 }
+                 else {
+                     const require = createRequire(import.meta.url);

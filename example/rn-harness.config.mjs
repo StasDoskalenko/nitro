@@ -6,6 +6,7 @@ import {
   applePlatform,
   appleSimulator,
 } from '@react-native-harness/platform-apple'
+import { windowsPlatform } from './harness/windowsPlatform.mjs'
 
 const config = {
   entryPoint: './index.js',
@@ -29,6 +30,11 @@ const config = {
       name: 'ios',
       device: appleSimulator(process.env.DEVICE_MODEL, process.env.IOS_VERSION),
       bundleId: 'com.mrousavy.nitro.example',
+    }),
+    windowsPlatform({
+      name: 'windows',
+      // Package.appxmanifest Identity Name of example/windows
+      packageName: 'ReactNativeNitroExample',
     }),
   ],
   defaultRunner: 'android',

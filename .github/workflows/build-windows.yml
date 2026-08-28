@@ -30,14 +30,14 @@ on:
 
 jobs:
   build:
-    name: Build ${{ matrix.name }} (MSVC, ${{ matrix.configuration }})
+    name: Build ${{ matrix.target.name }} (MSVC, ${{ matrix.configuration }})
     # windows-2025 ships VS 2022/2026 (MSVC v143/v145), the Windows 10.0.26100 SDK and NuGet.
     runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
         configuration: [Debug, Release]
-        include:
+        target:
           # The shared Nitro core: compiles all of cpp/ + the Windows platform layer and
           # links NitroModules.dll with the NITRO_EXPORT ABI.
           - name: NitroModules.dll
@@ -66,10 +66,10 @@ jobs:
           $dir = (Resolve-Path (Split-Path $pkg.FullName)).Path + '\'
           "dir=$dir" >> $env:GITHUB_OUTPUT
 
-      - name: Build ${{ matrix.name }} (${{ matrix.configuration }}|x64)
+      - name: Build ${{ matrix.target.name }} (${{ matrix.configuration }}|x64)
         shell: pwsh
         run: |
-          msbuild ${{ matrix.solution }} `
+          msbuild ${{ matrix.target.solution }} `
             /t:restore,build `
             /p:Configuration=${{ matrix.configuration }} `
             /p:Platform=x64 `
