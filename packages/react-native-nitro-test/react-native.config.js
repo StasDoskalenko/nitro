@@ -11,8 +11,7 @@ module.exports = {
        * @type {import('@react-native-community/cli-types').AndroidDependencyParams}
        */
       android: {},
-      // No standalone Windows module project (only a compile-check). Consumers that
-      // need the Nitro type-system C++ compile it via the generated autolinking props.
+      // No standalone Windows module project (windows/ is a compile-check only).
       windows: null,
     },
   },

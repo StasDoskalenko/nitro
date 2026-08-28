@@ -1,16 +1,10 @@
 import * as React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
-/**
- * Windows entry point for the Nitro example app.
- *
- * The cross-platform `App.tsx` is built around `@react-navigation` +
- * `react-native-screens`, which has no React-Native-Windows New Architecture
- * project yet. The Windows build only needs to host the JS runtime so the
- * react-native-harness bridge can attach and run the `*.harness.ts` suites
- * (they exercise HybridObjects directly and don't touch the UI), so this
- * screen is deliberately just a static placeholder.
- */
+// `App.tsx` uses `@react-navigation` + `react-native-screens`, which has no RNW
+// New Arch project. The harness suites drive HybridObjects over the bridge and
+// don't touch the UI, so the Windows app just needs to host the JS runtime —
+// hence this static placeholder.
 export default function App(): React.JSX.Element {
   return (
     <View style={styles.container}>

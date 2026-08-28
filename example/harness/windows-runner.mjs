@@ -1,16 +1,9 @@
 // React Native Harness platform runner for React Native Windows.
 //
-// react-native-harness ships `platform-android` / `platform-apple` only. The
-// runner contract is open (`@react-native-harness/platforms` already types Web
-// and Vega launch options), and the in-app runtime + bridge are platform
-// agnostic: the runtime derives the bridge WebSocket URL from
-// `getDevServer().url` (the Metro host:port the bundle loaded from) + `/__harness`.
-// A React Native Windows Debug app defaults to `localhost:8081`, which is also
-// the harness Metro default (`DEFAULT_METRO_PORT`), so no native dev-server
-// override is needed as long as `metroPort` is left at 8081.
-//
-// This runner therefore only has to: launch the (already deployed) MSIX app,
-// and hand back an `AppSession` that tracks its process.
+// react-native-harness has no `platform-windows`, but the in-app runtime and
+// bridge are platform-agnostic and an RNW Debug app connects to Metro on
+// localhost:8081 by default (= the harness Metro), so this runner only has to
+// launch the already-deployed MSIX app and track its process.
 
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
@@ -34,11 +27,8 @@ async function ps(script) {
 }
 
 /**
- * Resolve the app's package family name + AUMID.
- * `config.packageName` is the identity Name from Package.appxmanifest
- * (e.g. `ReactNativeNitroExample`). If a build path is provided via
- * HARNESS_APP_PATH we still launch by identity - the app must already be
- * deployed (CI does `react-native run-windows --no-launch` first).
+ * Resolve the app's package family name + AUMID from `config.packageName`
+ * (the Identity Name in Package.appxmanifest). The app must already be deployed.
  */
 async function resolveApp(config) {
   const name = config.packageName
