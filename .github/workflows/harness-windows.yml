@@ -1,0 +1,87 @@
+name: Harness Windows
+
+concurrency:
+  group: harness-windows-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/harness-windows.yml'
+      - 'example/windows/**'
+      - 'example/harness/**'
+      - 'example/__tests__/**'
+      - 'example/metro.config.js'
+      - 'example/react-native.config.js'
+      - 'example/rn-harness.config.mjs'
+      - 'example/jest.harness.config.mjs'
+      - 'example/package.json'
+      - 'example/src/getTests.ts'
+      - 'example/src/testing/**'
+      - 'packages/react-native-nitro-modules/cpp/**'
+      - 'packages/react-native-nitro-modules/windows/**'
+      - 'packages/react-native-nitro-modules/src/**'
+      - '**/nitrogen/generated/shared/**'
+      - '**/nitrogen/generated/windows/**'
+      - 'patches/**'
+      - '**/bun.lock'
+  pull_request:
+    paths:
+      - '.github/workflows/harness-windows.yml'
+      - 'example/windows/**'
+      - 'example/harness/**'
+      - 'example/__tests__/**'
+      - 'example/metro.config.js'
+      - 'example/react-native.config.js'
+      - 'example/rn-harness.config.mjs'
+      - 'example/jest.harness.config.mjs'
+      - 'example/package.json'
+      - 'example/src/getTests.ts'
+      - 'example/src/testing/**'
+      - 'packages/react-native-nitro-modules/cpp/**'
+      - 'packages/react-native-nitro-modules/windows/**'
+      - 'packages/react-native-nitro-modules/src/**'
+      - '**/nitrogen/generated/shared/**'
+      - '**/nitrogen/generated/windows/**'
+      - 'patches/**'
+      - '**/bun.lock'
+
+jobs:
+  harness_windows:
+    name: Harness Windows (new architecture)
+    # windows-2025 ships VS 2022 (MSVC v143), the Windows 10.0.26100 SDK and NuGet.
+    runs-on: windows-2025
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install npm dependencies (bun)
+        run: bun install --frozen-lockfile
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      # Builds NitroModules.dll + the app and registers the MSIX package. The
+      # harness (next step) launches it by package identity - see
+      # example/harness/windows-runner.mjs.
+      - name: Build and deploy the Windows app
+        working-directory: example
+        run: bunx react-native run-windows --arch x64 --no-launch --no-packager --logging
+
+      - name: Run Harness E2E tests
+        uses: callstackincubator/react-native-harness@v1.4.1
+        with:
+          runner: windows
+          projectRoot: example
+          # windows-runner.mjs launches the deployed package by identity and
+          # ignores this, but the action requires a non-empty `app`.
+          app: windows
+          packageManager: bun
+          harnessArgs: windows-smoke
