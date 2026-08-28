@@ -25,8 +25,8 @@ using namespace facebook;
  * The new class can then be passed to JS using the `JSIConverter<HybridObject>`.
  */
 class NITRO_EXPORT HybridObject : public virtual jsi::NativeState,
-                                 public HybridObjectPrototype,
-                                 public std::enable_shared_from_this<HybridObject> {
+                                  public HybridObjectPrototype,
+                                  public std::enable_shared_from_this<HybridObject> {
 public:
   /**
    * Create a new instance of a `HybridObject`.
