@@ -1,7 +1,10 @@
 import { NitroConfig } from '../../config/NitroConfig.js'
 import { createCppHybridObjectRegistration } from '../../syntax/c++/CppHybridObjectRegistration.js'
 import { includeHeader } from '../../syntax/c++/includeNitroHeader.js'
-import { createFileMetadataString, isNotDuplicate } from '../../syntax/helpers.js'
+import {
+  createFileMetadataString,
+  isNotDuplicate,
+} from '../../syntax/helpers.js'
 import type { SourceFile, SourceImport } from '../../syntax/SourceFile.js'
 import { indent } from '../../utils.js'
 import { getBuildingWithGeneratedMSBuildDefinition } from './createMSBuildExtension.js'
@@ -20,15 +23,17 @@ export function createHybridObjectInitializer(): SourceFile[] {
   const autolinkingClassName = `${projectName}Autolinking`
   const buildingWithDefinition = getBuildingWithGeneratedMSBuildDefinition()
 
-  const autolinkedHybridObjects = NitroConfig.current.getAutolinkedHybridObjects()
+  const autolinkedHybridObjects =
+    NitroConfig.current.getAutolinkedHybridObjects()
 
   const cppImports: SourceImport[] = []
   const cppRegistrations: string[] = []
   for (const hybridObjectName of Object.keys(autolinkedHybridObjects)) {
-    const implementation = NitroConfig.current.getPlatformAutolinkedImplementation(
-      hybridObjectName,
-      'windows'
-    )
+    const implementation =
+      NitroConfig.current.getPlatformAutolinkedImplementation(
+        hybridObjectName,
+        'windows'
+      )
     if (implementation == null) {
       // This HybridObject is not autolinked on Windows.
       continue

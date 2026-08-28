@@ -49,7 +49,8 @@ export class NitroConfig {
    */
   getWindowsProjectName(): string {
     return (
-      this.config.windows?.windowsProjectName ?? this.config.android.androidCxxLibName
+      this.config.windows?.windowsProjectName ??
+      this.config.android.androidCxxLibName
     )
   }
 
