@@ -75,9 +75,10 @@ jobs:
         working-directory: example
         run: bunx react-native run-windows --arch x64 --no-launch --no-packager --logging
 
-      # The callstackincubator/react-native-harness action can't run on a Windows
-      # runner (v1.4.1 passes `${{ github.action_path }}` — a backslash path —
-      # unquoted to `node` inside a bash step), so invoke the CLI directly.
       - name: Run Harness E2E tests
-        working-directory: example
-        run: bunx react-native-harness --harnessRunner windows windows-smoke
+        uses: StasDoskalenko/react-native-harness@main
+        with:
+          runner: windows
+          projectRoot: example
+          packageManager: bun
+          harnessArgs: windows-smoke
