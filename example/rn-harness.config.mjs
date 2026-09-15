@@ -6,7 +6,7 @@ import {
   applePlatform,
   appleSimulator,
 } from '@react-native-harness/platform-apple'
-import { windowsPlatform } from './harness/windowsPlatform.mjs'
+import { windowsPlatform } from '@react-native-harness/platform-windows'
 
 const config = {
   entryPoint: './index.js',
