@@ -11,13 +11,22 @@ import com.margelo.nitro.core.NullType
 import com.margelo.nitro.core.Promise
 import com.margelo.nitro.core.resolved
 import com.margelo.nitro.test.external.HybridSomeExternalObjectSpec
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Instant
 
 @Keep
 @DoNotStrip
 class HybridTestObjectKotlin : HybridTestObjectSwiftKotlinSpec() {
+  private var pendingPromise: Promise<Double>? = null
+
+  private companion object {
+    val promiseScope = CoroutineScope(Dispatchers.Default)
+  }
+
   override var numberValue: Double = 0.0
   override var boolValue: Boolean = false
   override var stringValue: String = ""
@@ -43,6 +52,8 @@ class HybridTestObjectKotlin : HybridTestObjectSwiftKotlinSpec() {
   override val isBoolean = false
   override var hasBooleanWritable = false
   override var isBooleanWritable = false
+  override var isolatedBoolean = false
+  override var isTextValue = ""
 
   override fun simpleFunc() {
     // do nothing
@@ -316,12 +327,34 @@ class HybridTestObjectKotlin : HybridTestObjectSwiftKotlinSpec() {
     }
   }
 
+  override fun createPendingPromise(): Promise<Double> {
+    check(pendingPromise == null) { "A pending Promise is already waiting for completion." }
+    val promise = Promise<Double>()
+    pendingPromise = promise
+    return promise
+  }
+
+  override fun resolvePendingPromiseOnWorker() {
+    val promise = checkNotNull(pendingPromise) { "No pending Promise is waiting for completion." }
+    // Only JS calls access the slot; the worker owns the extracted Promise.
+    pendingPromise = null
+    promiseScope.launch {
+      promise.resolve(55.0)
+    }
+  }
+
   override fun promiseThatResolvesVoidInstantly(): Promise<Unit> {
     return Promise.resolved()
   }
 
   override fun promiseThatResolvesToUndefined(): Promise<Double?> {
     return Promise.resolved(null)
+  }
+
+  override fun awaitNullablePromise(): Promise<Double?> {
+    return Promise.async {
+      Promise.resolved<Double?>(null).await()
+    }
   }
 
   override fun awaitAndGetPromise(promise: Promise<Double>): Promise<Double> {
@@ -669,6 +702,14 @@ class HybridTestObjectKotlin : HybridTestObjectSwiftKotlinSpec() {
   override fun callbackSync(callback: () -> Double): Double {
     val value = callback()
     return value
+  }
+
+  override fun getSyncNumberCallback(): () -> Double {
+    return { 55.0 }
+  }
+
+  override fun bounceSyncInt64Callback(callback: (Long) -> Long): (Long) -> Long {
+    return callback
   }
 
   override fun bounceExternalHybrid(externalObject: HybridSomeExternalObjectSpec): HybridSomeExternalObjectSpec {

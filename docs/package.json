@@ -29,13 +29,13 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "satori": "^0.33.3",
-    "sharp": "^0.35.2"
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
-    "docusaurus-plugin-llms": "^0.5.1",
+    "docusaurus-plugin-llms": "^0.6.0",
     "typescript": "~6.0.3"
   },
   "browserslist": {

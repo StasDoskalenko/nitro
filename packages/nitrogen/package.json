@@ -1,6 +1,6 @@
 {
   "name": "nitrogen",
-  "version": "0.37.0",
+  "version": "0.37.1",
   "description": "Code generator for React Native Nitro Modules that turns TypeScript specs into C++, Swift, and Kotlin bindings.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
@@ -14,12 +14,12 @@
   "bin": "./lib/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mrousavy/nitro.git"
+    "url": "git+https://github.com/margelo/nitro.git"
   },
   "author": "Marc Rousavy <me@mrousavy.com> (https://github.com/mrousavy)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mrousavy/nitro/issues"
+    "url": "https://github.com/margelo/nitro/issues"
   },
   "homepage": "https://nitro.margelo.com/docs/concepts/nitrogen",
   "publishConfig": {
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "chalk": "^5.3.0",
-    "react-native-nitro-modules": "^0.37.0",
+    "react-native-nitro-modules": "^0.37.1",
     "ts-morph": "^28.0.0",
     "yargs": "^18.0.0",
     "zod": "^4.4.3"

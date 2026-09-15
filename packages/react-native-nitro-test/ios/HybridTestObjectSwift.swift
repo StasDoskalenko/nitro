@@ -5,10 +5,13 @@
 //  Created by Marc Rousavy on 11.08.24.
 //
 
+import Dispatch
 import NitroModules
 import NitroTestExternal
 
 class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
+  private var pendingPromise: Promise<Double>?
+
   var optionalArray: [String]? = []
 
   var someVariant: Variant_Double_String = .first(55)
@@ -49,6 +52,8 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   let isBoolean = false
   var hasBooleanWritable = false
   var isBooleanWritable = false
+  var isolatedBoolean = false
+  var isTextValue = ""
 
   var thisObject: any HybridTestObjectSwiftKotlinSpec {
     return self
@@ -464,12 +469,38 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
     }
   }
 
+  func createPendingPromise() throws -> Promise<Double> {
+    guard pendingPromise == nil else {
+      throw RuntimeError.error(withMessage: "A pending Promise is already waiting for completion.")
+    }
+    let promise = Promise<Double>()
+    pendingPromise = promise
+    return promise
+  }
+
+  func resolvePendingPromiseOnWorker() throws {
+    guard let promise = pendingPromise else {
+      throw RuntimeError.error(withMessage: "No pending Promise is waiting for completion.")
+    }
+    // Only JS calls access the slot; the worker owns the extracted Promise.
+    pendingPromise = nil
+    DispatchQueue.global().async {
+      promise.resolve(withResult: 55.0)
+    }
+  }
+
   func promiseThatResolvesVoidInstantly() throws -> Promise<Void> {
     return Promise.resolved()
   }
 
   func promiseThatResolvesToUndefined() throws -> Promise<Double?> {
     return Promise.resolved(withResult: nil)
+  }
+
+  func awaitNullablePromise() throws -> Promise<Double?> {
+    return Promise.async {
+      try await Promise<Double?>.resolved(withResult: nil).await()
+    }
   }
 
   func awaitAndGetPromise(promise: Promise<Double>) throws -> Promise<Double> {
@@ -637,6 +668,14 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   func callbackSync(callback: @escaping () -> Double) throws -> Double {
     let value = callback()
     return value
+  }
+
+  func getSyncNumberCallback() throws -> () -> Double {
+    return { 55 }
+  }
+
+  func bounceSyncInt64Callback(callback: @escaping (Int64) -> Int64) throws -> (Int64) -> Int64 {
+    return callback
   }
 
   func bounceExternalHybrid(externalObject: (any HybridSomeExternalObjectSpec)) throws -> (

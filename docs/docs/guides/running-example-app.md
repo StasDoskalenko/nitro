@@ -16,11 +16,11 @@ import TabItem from '@theme/TabItem';
 
 # Running the Example app
 
-This guide will help you understand the [Nitro Example app](https://github.com/mrousavy/nitro/tree/main/example)'s role, and teach you how to run it both in debug and in release.
+This guide will help you understand the [Nitro Example app](https://github.com/margelo/nitro/tree/main/example)'s role, and teach you how to run it both in debug and in release.
 
 ## The Example app's purpose
 
-Nitro's development always targets the example app (under `example/`). It narrows down user bugs by the following criteria;
+Nitro's development always targets the example app (under `apps/example/`). It narrows down user bugs by the following criteria;
 
 - If you have a bug in your code, but the same code works in the Nitro example app, it's a **user error** and won't/can't be fixed.
 - If you have a bug in your code that can also be reproduced inside the Nitro example app, it's a **Nitro bug**, which might get fixed in a future PR.
@@ -39,7 +39,7 @@ These should allow you to test all Nitro features in a single app, which is usef
 
 ## Run the pre-built example app (release)
 
-Each release of Nitro contains a pre-built release version of the [Nitro Example app](https://github.com/mrousavy/nitro/tree/main/example). You can download the pre-built `.app`/`.apk` from [the latest Nitro release](https://github.com/mrousavy/nitro/releases/latest), and run it on your iOS Simulator, or Android Simulator/Device.
+Each release of Nitro contains a pre-built release version of the [Nitro Example app](https://github.com/margelo/nitro/tree/main/example). You can download the pre-built `.app`/`.apk` from [the latest Nitro release](https://github.com/margelo/nitro/releases/latest), and run it on your iOS Simulator, or Android Simulator/Device.
 
 ### iOS
 
@@ -81,14 +81,14 @@ Then, simply clone (potentially also fork?) the Nitro repository and install its
   <TabItem value="macos" label="macOS" default>
 
     ```sh
-    git clone https://github.com/mrousavy/nitro
+    git clone https://github.com/margelo/nitro
     cd nitro
     bun bootstrap
     ```
 
     #### iOS
 
-    To run the iOS app of Nitro Example, open `example/ios/NitroExample.xcworkspace` in Xcode, and hit run.
+    To run the iOS app of Nitro Example, open `apps/example/ios/NitroExample.xcworkspace` in Xcode, and hit run.
 
     The `bun bootstrap` command should have ensured that Pods are installed.
 
@@ -100,13 +100,13 @@ Then, simply clone (potentially also fork?) the Nitro repository and install its
     open -a "Android Studio"
     ```
 
-    Then, open `example/android/` in Android Studio.
+    Then, open `apps/example/android/` in Android Studio.
 
   </TabItem>
   <TabItem value="other" label="Windows/Linux">
 
     ```sh
-    git clone https://github.com/mrousavy/nitro
+    git clone https://github.com/margelo/nitro
     cd nitro
     bun i
     bun run build
@@ -120,7 +120,7 @@ Then, simply clone (potentially also fork?) the Nitro repository and install its
     open -a "Android Studio"
     ```
 
-    Then, open `example/android/` in Android Studio.
+    Then, open `apps/example/android/` in Android Studio.
 
   </TabItem>
 </Tabs>

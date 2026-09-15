@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-modules",
-  "version": "0.37.0",
+  "version": "0.37.1",
   "description": "Fast, type-safe native modules for React Native with statically compiled JSI bindings.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -49,12 +49,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mrousavy/nitro.git"
+    "url": "git+https://github.com/margelo/nitro.git"
   },
   "author": "Marc Rousavy <me@mrousavy.com> (https://github.com/mrousavy)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mrousavy/nitro/issues"
+    "url": "https://github.com/margelo/nitro/issues"
   },
   "homepage": "https://nitro.margelo.com",
   "publishConfig": {

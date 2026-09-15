@@ -8,6 +8,7 @@
 #include "HybridTestObjectCpp.hpp"
 #include <NitroModules/AnyMap.hpp>
 #include <NitroModules/NitroLogger.hpp>
+#include <NitroModules/ThreadPool.hpp>
 #include <chrono>
 #include <sstream>
 #include <thread>
@@ -181,6 +182,22 @@ bool HybridTestObjectCpp::getHasBooleanWritable() {
 
 void HybridTestObjectCpp::setHasBooleanWritable(bool hasBooleanWritable) {
   _hasBooleanWritable = hasBooleanWritable;
+}
+
+bool HybridTestObjectCpp::getIsolatedBoolean() {
+  return _isolatedBoolean;
+}
+
+void HybridTestObjectCpp::setIsolatedBoolean(bool isolatedBoolean) {
+  _isolatedBoolean = isolatedBoolean;
+}
+
+std::string HybridTestObjectCpp::getIsTextValue() {
+  return _isTextValue;
+}
+
+void HybridTestObjectCpp::setIsTextValue(const std::string& isTextValue) {
+  _isTextValue = isTextValue;
 }
 
 void HybridTestObjectCpp::setOptionalCallback(const std::optional<std::function<void(double)>>& callback) {
@@ -611,12 +628,36 @@ std::shared_ptr<Promise<double>> HybridTestObjectCpp::promiseReturnsInstantlyAsy
   return Promise<double>::async([=]() { return 55; });
 }
 
+std::shared_ptr<Promise<double>> HybridTestObjectCpp::createPendingPromise() {
+  if (_pendingPromise) {
+    throw std::runtime_error("A pending Promise is already waiting for completion.");
+  }
+  _pendingPromise = Promise<double>::create();
+  return _pendingPromise;
+}
+
+void HybridTestObjectCpp::resolvePendingPromiseOnWorker() {
+  if (!_pendingPromise) {
+    throw std::runtime_error("No pending Promise is waiting for completion.");
+  }
+  // Only JS calls access the slot; the worker owns the extracted Promise.
+  auto promise = std::move(_pendingPromise);
+  ThreadPool::shared().run([promise = std::move(promise)]() { promise->resolve(55); });
+}
+
 std::shared_ptr<Promise<void>> HybridTestObjectCpp::promiseThatResolvesVoidInstantly() {
   return Promise<void>::resolved();
 }
 
 std::shared_ptr<Promise<std::optional<double>>> HybridTestObjectCpp::promiseThatResolvesToUndefined() {
   return Promise<std::optional<double>>::resolved(std::nullopt);
+}
+
+std::shared_ptr<Promise<std::optional<double>>> HybridTestObjectCpp::awaitNullablePromise() {
+  return Promise<std::optional<double>>::async([]() {
+    auto promise = Promise<std::optional<double>>::resolved(std::nullopt);
+    return promise->await().get();
+  });
 }
 
 void HybridTestObjectCpp::callAll(const std::function<void()>& first, const std::function<void()>& second,
@@ -820,6 +861,14 @@ bool HybridTestObjectCpp::getIsViewBlue(const std::shared_ptr<HybridTestViewSpec
 double HybridTestObjectCpp::callbackSync(const std::function<double()>& callback) {
   double value = callback();
   return value;
+}
+
+std::function<double()> HybridTestObjectCpp::getSyncNumberCallback() {
+  return []() -> double { return 55; };
+}
+
+std::function<int64_t(int64_t)> HybridTestObjectCpp::bounceSyncInt64Callback(const std::function<int64_t(int64_t)>& callback) {
+  return callback;
 }
 
 std::shared_ptr<margelo::nitro::test::external::HybridSomeExternalObjectSpec> HybridTestObjectCpp::bounceExternalHybrid(

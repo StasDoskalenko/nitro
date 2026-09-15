@@ -27,7 +27,7 @@ on:
       - main
     paths:
       - ".github/workflows/harness-ios.yml"
-      - "example/ios/**"
+      - "apps/example/ios/**"
       - "**/nitrogen/generated/shared/**"
       - "**/nitrogen/generated/ios/**"
       - "packages/react-native-nitro-test/cpp/**"
@@ -42,16 +42,16 @@ on:
       - "**/*.podspec"
       - "**/react-native.config.js"
       - "**/nitro.json"
-      - "example/__tests__/**"
-      - "example/src/getTests.ts"
-      - "example/src/testing/**"
-      - "example/jest.harness.config.mjs"
-      - "example/package.json"
-      - "example/rn-harness.config.mjs"
+      - "apps/example/__tests__/**"
+      - "apps/example/src/getTests.ts"
+      - "apps/example/src/testing/**"
+      - "apps/example/jest.harness.config.mjs"
+      - "apps/example/package.json"
+      - "apps/example/rn-harness.config.mjs"
   pull_request:
     paths:
       - ".github/workflows/harness-ios.yml"
-      - "example/ios/**"
+      - "apps/example/ios/**"
       - "**/nitrogen/generated/shared/**"
       - "**/nitrogen/generated/ios/**"
       - "packages/react-native-nitro-test/cpp/**"
@@ -66,19 +66,18 @@ on:
       - "**/*.podspec"
       - "**/react-native.config.js"
       - "**/nitro.json"
-      - "example/__tests__/**"
-      - "example/src/getTests.ts"
-      - "example/src/testing/**"
-      - "example/jest.harness.config.mjs"
-      - "example/package.json"
-      - "example/rn-harness.config.mjs"
+      - "apps/example/__tests__/**"
+      - "apps/example/src/getTests.ts"
+      - "apps/example/src/testing/**"
+      - "apps/example/jest.harness.config.mjs"
+      - "apps/example/package.json"
+      - "apps/example/rn-harness.config.mjs"
 
 env:
   # Device configuration - can be overridden by workflow_dispatch inputs
   DEVICE_MODEL: ${{ github.event.inputs.device_model || 'iPhone 17 Pro' }}
   IOS_VERSION: ${{ github.event.inputs.ios_version || '26.5' }}
   XCODE_VERSION: ${{ github.event.inputs.xcode_version || '26.5' }}
-  USE_CCACHE: 1
   DEVELOPER_DIR: /Applications/Xcode_${{ github.event.inputs.xcode_version || '26.5' }}.app/Contents/Developer
   HARNESS_DEBUG: 1
 
@@ -111,20 +110,21 @@ jobs:
         with:
           max-size: 1.5G
           key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-${{ matrix.sanitizer.name }}-ccache-example-ios
-          create-symlink: true
       - name: Setup ccache behavior
         run: |
-          echo "CCACHE_SLOPPINESS=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros" >> $GITHUB_ENV
-          echo "CCACHE_FILECLONE=true" >> $GITHUB_ENV
-          echo "CCACHE_DEPEND=true" >> $GITHUB_ENV
-          echo "CCACHE_INODECACHE=true" >> $GITHUB_ENV
+          {
+            echo "CCACHE_SLOPPINESS=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros"
+            echo "CCACHE_FILECLONE=true"
+            echo "CCACHE_DEPEND=true"
+            echo "CCACHE_INODECACHE=true"
+          } >> "$GITHUB_ENV"
 
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 2.7.2
           bundler-cache: true
-          working-directory: example
+          working-directory: apps/example
 
       - name: Select Xcode ${{ env.XCODE_VERSION }}
         run: sudo xcode-select -s "/Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer"
@@ -132,31 +132,30 @@ jobs:
       - name: Restore Pods cache
         uses: actions/cache@v6
         with:
-          path: example/ios/Pods
-          key: ${{ runner.os }}-${{ runner.arch }}-pods-${{ hashFiles('bun.lock', 'example/Gemfile.lock', 'example/ios/Podfile.lock') }}
+          path: apps/example/ios/Pods
+          key: ${{ runner.os }}-${{ runner.arch }}-pods-${{ hashFiles('bun.lock', 'apps/example/Gemfile.lock', 'apps/example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-pods-
       - name: Install Pods
-        working-directory: example
+        working-directory: apps/example
         run: bun pods
 
       - name: Restore DerivedData cache
         uses: actions/cache@v6
         with:
-          path: example/ios/build
-          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-${{ matrix.sanitizer.name }}-dd-${{ hashFiles('bun.lock', 'example/Gemfile.lock', 'example/ios/Podfile.lock') }}
+          path: apps/example/ios/build
+          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-${{ matrix.sanitizer.name }}-dd-${{ hashFiles('bun.lock', 'apps/example/Gemfile.lock', 'apps/example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-${{ matrix.sanitizer.name }}-dd-
 
       - name: Build iOS app
-        working-directory: example/ios
+        working-directory: apps/example/ios
         run: |
           set -o pipefail
-          CLANG="$(xcrun -f clang)"
-          CLANGXX="$(xcrun -f clang++)"
           SANITIZER_FLAGS="${{ matrix.sanitizer.xcodebuild_flags }}"
           xcodebuild \
-            CC="${CLANG}" CPLUSPLUS="${CLANGXX}" LD="${CLANG}" LDPLUSPLUS="${CLANGXX}" \
+            C_COMPILER_LAUNCHER="$(command -v ccache)" \
+            CLANG_ENABLE_EXPLICIT_MODULES_WITH_COMPILER_LAUNCHER=YES \
             -derivedDataPath build -UseModernBuildSystem=YES \
             -workspace NitroExample.xcworkspace \
             -scheme NitroExample \
@@ -174,8 +173,30 @@ jobs:
 
       - name: Run Harness E2E tests
         uses: callstackincubator/react-native-harness@v1.5.0
+        env:
+          SIMCTL_CHILD_TSAN_OPTIONS: ${{ matrix.sanitizer.name == 'TSan' && 'halt_on_error=1:log_path=/tmp/nitro-tsan' || '' }}
         with:
           runner: ios
-          projectRoot: example
+          projectRoot: apps/example
           app: ios/build/Build/Products/Debug-iphonesimulator/NitroExample.app
           packageManager: bun
+
+      - name: Check TSan reports
+        if: always() && matrix.sanitizer.name == 'TSan'
+        shell: bash
+        run: |
+          shopt -s nullglob
+          reports=(/tmp/nitro-tsan.*)
+          if [ ${#reports[@]} -gt 0 ]; then
+            cat "${reports[@]}"
+            echo "::error::ThreadSanitizer reported an error."
+            exit 1
+          fi
+
+      - name: Upload TSan reports
+        if: always() && matrix.sanitizer.name == 'TSan'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tsan-reports-ios
+          path: /tmp/nitro-tsan.*
+          if-no-files-found: ignore

@@ -11,42 +11,38 @@ on:
       - main
     paths:
       - '.github/workflows/harness-windows.yml'
-      - 'example/windows/**'
-      - 'example/harness/**'
-      - 'example/__tests__/**'
-      - 'example/metro.config.js'
-      - 'example/react-native.config.js'
-      - 'example/rn-harness.config.mjs'
-      - 'example/jest.harness.config.mjs'
-      - 'example/package.json'
-      - 'example/src/getTests.ts'
-      - 'example/src/testing/**'
+      - 'apps/example/windows/**'
+      - 'apps/example/__tests__/**'
+      - 'apps/example/metro.config.js'
+      - 'apps/example/react-native.config.js'
+      - 'apps/example/rn-harness.config.mjs'
+      - 'apps/example/jest.harness.config.mjs'
+      - 'apps/example/package.json'
+      - 'apps/example/src/getTests.ts'
+      - 'apps/example/src/testing/**'
       - 'packages/react-native-nitro-modules/cpp/**'
       - 'packages/react-native-nitro-modules/windows/**'
       - 'packages/react-native-nitro-modules/src/**'
       - '**/nitrogen/generated/shared/**'
       - '**/nitrogen/generated/windows/**'
-      - 'patches/**'
       - '**/bun.lock'
   pull_request:
     paths:
       - '.github/workflows/harness-windows.yml'
-      - 'example/windows/**'
-      - 'example/harness/**'
-      - 'example/__tests__/**'
-      - 'example/metro.config.js'
-      - 'example/react-native.config.js'
-      - 'example/rn-harness.config.mjs'
-      - 'example/jest.harness.config.mjs'
-      - 'example/package.json'
-      - 'example/src/getTests.ts'
-      - 'example/src/testing/**'
+      - 'apps/example/windows/**'
+      - 'apps/example/__tests__/**'
+      - 'apps/example/metro.config.js'
+      - 'apps/example/react-native.config.js'
+      - 'apps/example/rn-harness.config.mjs'
+      - 'apps/example/jest.harness.config.mjs'
+      - 'apps/example/package.json'
+      - 'apps/example/src/getTests.ts'
+      - 'apps/example/src/testing/**'
       - 'packages/react-native-nitro-modules/cpp/**'
       - 'packages/react-native-nitro-modules/windows/**'
       - 'packages/react-native-nitro-modules/src/**'
       - '**/nitrogen/generated/shared/**'
       - '**/nitrogen/generated/windows/**'
-      - 'patches/**'
       - '**/bun.lock'
 
 jobs:
@@ -72,13 +68,13 @@ jobs:
       # @react-native-harness/platform-windows' runner (next step) launches
       # it by package identity.
       - name: Build and deploy the Windows app
-        working-directory: example
+        working-directory: apps/example
         run: bunx react-native run-windows --arch x64 --no-launch --no-packager --logging
 
       - name: Run Harness E2E tests
         uses: callstackincubator/react-native-harness@v1.5.0
         with:
           runner: windows
-          projectRoot: example
+          projectRoot: apps/example
           packageManager: bun
           harnessArgs: windows-smoke

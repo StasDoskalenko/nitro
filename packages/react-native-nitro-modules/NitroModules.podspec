@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.homepage     = package["homepage"]
   s.license      = package["license"]
   s.authors      = package["author"]
-  s.source       = { :git => "https://github.com/mrousavy/nitro.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/margelo/nitro.git", :tag => "#{s.version}" }
   s.platforms    = {
     :ios => min_ios_version_supported,
     :visionos => 1.0,
@@ -45,6 +45,7 @@ Pod::Spec.new do |s|
     "cpp/jsi/JSIHelpers.hpp",
     "cpp/platform/NitroLogger.hpp",
     "cpp/threading/Dispatcher.hpp",
+    "cpp/threading/ThreadPool.hpp",
     "cpp/utils/JSCallback.hpp",
     "cpp/utils/FastVectorCopy.hpp",
     "cpp/utils/NitroHash.hpp",
