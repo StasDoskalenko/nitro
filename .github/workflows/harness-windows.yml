@@ -68,15 +68,15 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      # Builds NitroModules.dll + the app and registers the MSIX package. The
-      # harness (next step) launches it by package identity - see
-      # example/harness/windows-runner.mjs.
+      # Builds NitroModules.dll + the app and registers the MSIX package.
+      # @react-native-harness/platform-windows' runner (next step) launches
+      # it by package identity.
       - name: Build and deploy the Windows app
         working-directory: example
         run: bunx react-native run-windows --arch x64 --no-launch --no-packager --logging
 
       - name: Run Harness E2E tests
-        uses: StasDoskalenko/react-native-harness@main
+        uses: callstackincubator/react-native-harness@v1.5.0
         with:
           runner: windows
           projectRoot: example
